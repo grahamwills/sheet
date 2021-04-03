@@ -1,0 +1,147 @@
+html {
+    font-size: 80%;
+}
+
+body {
+    font-family: effra, Helvetica, Arial, sans-serif;
+    color: #333;
+    background: #e8ecf0;
+    font-style: normal;
+    font-weight: 300;
+}
+
+.col-1 {
+    border-right: 3px solid rgba(38, 51, 88, 0.25);
+}
+
+p, ul, dl, ol, table {
+    font-size: 1rem;
+    margin: 0 0 1.5em;
+}
+
+em {
+    font-style: italic;
+}
+
+strong {
+    font-weight: bold;
+    color: rgb(38, 51, 88);
+}
+
+h1 {
+    text-transform: initial;
+    color: black;
+    font-size: 2.0rem;
+    margin-top:0.5rem;
+    margin-bottom: 0;
+}
+
+
+.title-prefix {
+    color: #a28351;
+    font-style: italic;
+    font-weight: 300;
+}
+
+h2 {
+    margin-top:0.1rem;
+}
+
+h3 {
+    font-size: 1.2rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+
+a {
+    text-decoration: none;
+    color: #a28351;
+    font-weight: 600;
+    position: relative;
+    transition: all 0.25s linear;
+    -moz-transition: all 0.25s linear;
+    -webkit-transition: all 0.25s linear;
+    -o-transition: all 0.25s linear;
+}
+
+a:after {
+    content: "";
+    display: block;
+    background: #a28351;
+    height: 2px;
+    width: 100%;
+    position: absolute;
+    bottom: -0.2em;
+    left: 0;
+    opacity: 0;
+    transition: all 0.25s linear;
+    -moz-transition: all 0.25s linear;
+    -webkit-transition: all 0.25s linear;
+    -o-transition: all 0.25s linear;
+}
+
+a:hover, a:focus {
+    color: #000;
+}
+
+a:hover:after, a:focus:after {
+    opacity: 1;
+    bottom: 0;
+}
+
+img {
+    display: block;
+    margin: 0 10px 10px 0;
+    max-width: 100%;
+}
+
+a img {
+    border: none;
+}
+
+i {
+    font-style: normal;
+}
+
+b {
+    font-weight: normal;
+}
+
+.sample {
+    padding-left: 1em;
+    font-style: italic;
+    font-weight: 100;
+    font-size: 75%;
+}
+
+code {
+    font: 1.4rem/1 Consolas, 'Courier New', Courier, monospace;
+    color: #999;
+}
+
+
+.col-1 hr {
+    width: 66%;
+    margin: 1em auto;
+}
+
+footer {
+    font-size: 80%;
+    font-style: italic;
+}
+
+
+.table_form * {
+    font-family: effra, Helvetica, Arial, sans-serif;
+    border: none;
+    padding:0.2em;
+}
+
+
+.table_form th {
+    text-align: right;
+    color: #a28351;
+}

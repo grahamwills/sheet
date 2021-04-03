@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Landing Zone{% endblock %}
+{% block header1 %}GGZ Character Sheets{% endblock %}
+{% block header2 %}Landing Zone{% endblock %}
+
+{% block pagecontent %}
+
+    <H2>Welcome</H2>
+    <p>
+        This site is for users to create and store character sheet data
+    </p>
+
+
+    <p>Enter the name of a layout to view it</p>
+
+    <form action="{% url 'show' %}" method="get">
+        <table class="table_form">
+            {{ form.as_table }}
+        </table>
+        <input type="submit" value="Go">
+    </form>
+
+
+{% endblock %}

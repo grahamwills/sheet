@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}style - {{style_name}} {% endblock %}
+{% block header1 %}Style{% endblock %}
+{% block header2 %}{{style_name}}{% endblock %}
+
+{% block pagecontent %}
+
+    <h2>Style Definition</h2>
+    <form action="" method="POST">
+        <table class="table_form">
+            {% csrf_token %}
+            {{ form.as_table }}
+        </table>
+        <input type="submit" value="Update"/>
+    </form>
+
+{% endblock %}

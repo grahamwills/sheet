@@ -1,0 +1,43 @@
+body {
+    display: flex;
+    flex-flow: row nowrap;
+    margin: 0;
+    min-height: 100vh
+}
+
+
+.col-1 {
+    flex: 0 0 auto;
+}
+
+
+.col-2 {
+    flex: 1 1 auto;
+    display: flex;
+    flex-flow: column nowrap;
+    margin: 0;
+    min-height: 100vh;
+    padding: 0;
+}
+
+header {
+    flex: 0 0 auto;
+}
+
+main {
+    flex: 1 1 auto;
+}
+
+footer {
+    flex: 0 0 auto;
+    padding: 0.5em;
+    text-align: right;
+    margin: 0;
+}
+
+
+header, article, nav {
+    padding: 1em;
+}
+
+

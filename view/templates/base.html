@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>GZ Sheet Gen - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://use.typekit.net/env6rmq.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'view/style.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'view/flexbox.css' %}">
+</head>
+<body>
+
+<nav class="col-1">
+
+    {% if layout_name %}
+        <span>Sheet:</span>
+        <H2>{{ layout_name }}</H2>
+
+        <form id="build_form" action="{% url 'build' %}" target="ggz_sheet_output">
+            <input type="hidden" name="layout" value="{{ layout_name }}"/>
+            <input type="submit" style="width:100%" value="Build">
+        </form>
+        &nbsp;
+
+        <div>
+            <a href="{% url 'show' %}?layout={{ layout_name }}">Layout</a>
+        </div>
+
+        <h3>Sections</h3>
+        {% for section in sections %}
+            <div>
+                <a href="{% url 'show' %}?layout={{ layout_name }}&section={{ section.name }}">{{ section.name }}</a>
+            </div>
+        {% endfor %}
+
+        <h3>Styles</h3>
+        {% for style in styles %}
+            <div>
+                <a href="{% url 'show' %}?layout={{ layout_name }}&style={{ style.name }}">{{ style.label }}</a>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <h3>Site</h3>
+
+    <div><a href="{% url 'home' %}">Home</a></div>
+
+    <div><a href="/admin">Admin</a></div>
+</nav>
+<div class="col-2">
+    <header>
+        <H1><span class="title-prefix">{% block header1 %}{% endblock %}: </span> {% block header2 %}{% endblock %}</H1>
+    </header>
+    <main class="content">
+        <article>
+            {% block pagecontent %}
+            {% endblock %}
+        </article>
+    </main>
+    <footer>&#169; Graham Wills 2021; Generated PDFs free for personal use</footer>
+</div>
+
+
+</body>
+</html>
