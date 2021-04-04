@@ -3,6 +3,9 @@ import importlib.resources
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import Image, Paragraph, Table
+
+import pdf.components
 
 
 def readable(s: str):
@@ -61,3 +64,24 @@ def install_font(name, resource_name, user_fonts):
         italic = create_single_font(name + "-Italic", resource_name + "-Italic", regular, user_fonts)
         bold_italic = create_single_font(name + "-BoldItalic", resource_name + "-BoldItalic", bold, user_fonts)
         pdfmetrics.registerFontFamily(name, normal=name, bold=bold, italic=italic, boldItalic=bold_italic)
+
+
+def count_wrapped(flowable):
+    if not flowable:
+        return 0
+    if isinstance(flowable, Paragraph):
+        # We don't care if there are more than two lines
+        return 1 if len(flowable.blPara.lines) > 1 else 0
+    if isinstance(flowable, Table):
+        return sum([count_wrapped(cell) for cell in flowable.original_contents])
+    if isinstance(flowable, pdf.components.TextField) or isinstance(flowable, Image):
+        return 0
+    if isinstance(flowable, pdf.components.Checkboxes):
+        return 0 if flowable.fits_OK else 1000
+    raise Exception("Unexpected flowable content: " + str(flowable.__class__))
+
+
+def try_wrap(table, width, diverge):
+    w, h = table.wrap(width, 10000)
+    n_wrapped = count_wrapped(table)
+    return 20 * n_wrapped + h + 10 * diverge * diverge

@@ -5,7 +5,7 @@ from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT, TA_RIGHT
 from reportlab.lib.styles import ParagraphStyle, StyleSheet1
 from reportlab.lib.colors import toColorOrNone, Color
 from reportlab.lib.units import inch
-from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Table, TableStyle
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Table, TableStyle
 
 from .components import Checkboxes, ImageAutoSize, TextField, TitledTable
 from layout.models import TextStyle
@@ -143,8 +143,7 @@ class Part():
         self.line_spacing = definition['line_spacing']
         self.location = definition['location']
         self.image = definition['image']
-        self.content = [self.make_items(i) for i in definition['content'].splitlines()]
-        self.is_pairs = self.content and len(max(self.content, key=len)) > 1
+        self.content = definition['content'].strip()
 
     def regularize(self, value):
         if len(value) == 1:
@@ -153,44 +152,52 @@ class Part():
             return value
 
     def as_flow(self, on_left, width):
+        if self.image:
+            return self.as_image(on_left, width)
+        if not self.content:
+            return Paragraph("", style=self.text_style)
 
+        content_items = [self.make_items(i) for i in self.content.splitlines()]
+        style_commands = [
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), self.line_spacing),
+            ('RIGHTPADDING', (0, 0), (-1, -1), self.line_spacing),
+            ('TOPPADDING', (0, 0), (-1, -1), self.line_spacing),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), self.line_spacing),
+        ]
+
+        is_pairs = content_items and len(max(content_items, key=len)) > 1
+
+        if is_pairs:
+            content = []
+            for item in content_items:
+                if len(item) == 1:
+                    content.append(None)
+                    content.append(item[0])
+                else:
+                    content += item
+        else:
+            content = [c[0] for c in content_items]
+
+        content = self.wrap(content, self.columns * (2 if is_pairs else 1))
+
+        return self.place_in_table(content, style_commands, on_left)
+
+    def as_image(self, on_left, width):
+        style_commands = [
+            ('VALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ('TOPPADDING', (0, 0), (-1, -1), 0),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        ]
         # Adjust for extra padding for title
         if self.title and self.border_color:
             width -= TitledTable.title_size / 2
+        content = [[ImageAutoSize(self.image, width)]]
+        return self.place_in_table(content, style_commands, on_left)
 
-
-        if self.image:
-            style_commands = [
-                ('VALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-                ('TOPPADDING', (0, 0), (-1, -1), 0),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-            ]
-            content = [[ImageAutoSize(self.image, width)]]
-        else:
-            style_commands = [
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('LEFTPADDING', (0, 0), (-1, -1), self.line_spacing),
-                ('RIGHTPADDING', (0, 0), (-1, -1), self.line_spacing),
-                ('TOPPADDING', (0, 0), (-1, -1), self.line_spacing),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), self.line_spacing),
-            ]
-            if self.is_pairs:
-                content = []
-                for item in self.content:
-                    if len(item) == 1:
-                        content.append(None)
-                        content.append(item[0])
-                    else:
-                        content += item
-            else:
-                content = [c[0] for c in self.content]
-
-            content = self.wrap(content, self.columns * (2 if self.is_pairs else 1))
-
-        if not content:
-            return Paragraph("", style=self.text_style)
+    def place_in_table(self, content, style_commands, on_left):
         if self.border_color:
             return TitledTable(content, style_commands, self.title_style,
                                title=self.title, title_on_left=on_left, box_stroke=self.border_color,

@@ -1,10 +1,8 @@
 import io
 import json
 
-from reportlab.platypus import Image, Paragraph, Table
-
-import pdf.components
 from layout.models import Section
+from util import try_wrap
 from .util import build_font_choices
 from .items import Part, build_document, build_inner_table, build_styles, build_outer_table
 
@@ -13,27 +11,6 @@ def extract_section(all, loc, styles):
     sections = [Part(d, styles) for d in all if d['location'] == loc]
     sections.sort(key=lambda s: s.order)
     return sections
-
-
-def count_wrapped(flowable):
-    if not flowable:
-        return 0
-    if isinstance(flowable, Paragraph):
-        # We don't care if there are more than two lines
-        return 1 if len(flowable.blPara.lines) > 1 else 0
-    if isinstance(flowable, Table):
-        return sum([count_wrapped(cell) for cell in flowable.original_contents])
-    if isinstance(flowable, pdf.components.TextField) or isinstance(flowable, Image):
-        return 0
-    if isinstance(flowable, pdf.components.Checkboxes):
-        return 0 if flowable.fits_OK else 1000
-    raise Exception("Unexpected flowable content: " + str(flowable.__class__))
-
-
-def try_wrap(table, width, diverge):
-    w, h = table.wrap(width, 10000)
-    n_wrapped = count_wrapped(table)
-    return 20 * n_wrapped + h + 10 * diverge * diverge
 
 
 def count_columns(sections):
