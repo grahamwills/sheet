@@ -1,23 +1,24 @@
 from reportlab.lib import colors
 from reportlab.lib.colors import HexColor
 from reportlab.pdfbase.pdfmetrics import stringWidth
-from reportlab.platypus import Flowable, Table, TableStyle
+from reportlab.platypus import Flowable, Image, Table, TableStyle
 
 
 class TitledTable(Table):
+    title_size = 7
+    title_font = 'Helvetica-Bold'
+
     def __init__(self, data, style_commands, base_style=None, title=None, title_on_left=True, box_stroke=None,
                  box_fill=None,
                  colWidths=None):
         self.original_contents = [cell for row in data for cell in row]
         if base_style:
             self.title_on_left = title_on_left
-            self.title_size = base_style.fontSize * 0.9
-            self.title_font = base_style.fontName
             self.title = title
             if title_on_left:
-                style_commands.append(('LEFTPADDING', (0, 0), (0, -1), self.title_size))
+                style_commands.append(('LEFTPADDING', (0, 0), (0, -1), self.title_size/2))
             else:
-                style_commands.append(('RIGHTPADDING', (-1, 0), (-1, -1), self.title_size))
+                style_commands.append(('RIGHTPADDING', (-1, 0), (-1, -1), self.title_size/2))
         else:
             self.title = None
 
@@ -68,6 +69,7 @@ class TitledTable(Table):
             canvas.rect(0, 0, W, H, fill=bool(self.box_fill), stroke=bool(self.box_stroke))
 
         canvas.restoreState()
+
         super().draw()
         canvas.saveState()
         canvas.restoreState()
@@ -95,7 +97,6 @@ class Checkboxes(Flowable):
         canvas.saveState()
         canvas.setFont('Helvetica-Bold', F)
         canvas.setLineWidth(0.5)
-        canvas.translate(0, self.size / 4)
         for type in self.boxes:
             normal = type == 'X' or type == 'O'
             if normal:
@@ -129,7 +130,7 @@ class TextField(Flowable):
 
     def wrap(self, availWidth, availHeight):
         self.width = availWidth
-        return (availWidth, 12)
+        return (availWidth, self.style.fontSize + 4)
 
     def draw(self):
         c = self.canv
@@ -138,3 +139,11 @@ class TextField(Flowable):
         form.textfield(x=- 2, y=- 1, relative=True, width=self.width + 1, height=style.fontSize + 3,
                        fontName='Helvetica', fontSize=style.fontSize, textColor=style.textColor,
                        fillColor=HexColor(0xF4F4FF), borderWidth=0.5, borderColor=colors.lightgrey)
+
+
+class ImageAutoSize(Image):
+    def __init__(self, image, width):
+        super().__init__(image, lazy=0)
+        resize = min(1, width / image.width)
+        self.drawWidth = self.imageWidth * resize
+        self.drawHeight = self.imageHeight * resize

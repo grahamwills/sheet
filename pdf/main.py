@@ -1,7 +1,7 @@
 import io
 import json
 
-from reportlab.platypus import Paragraph, Table
+from reportlab.platypus import Image, Paragraph, Table
 
 import pdf.components
 from layout.models import Section
@@ -23,7 +23,7 @@ def count_wrapped(flowable):
         return 1 if len(flowable.blPara.lines) > 1 else 0
     if isinstance(flowable, Table):
         return sum([count_wrapped(cell) for cell in flowable.original_contents])
-    if isinstance(flowable, pdf.components.TextField):
+    if isinstance(flowable, pdf.components.TextField) or isinstance(flowable, Image):
         return 0
     if isinstance(flowable, pdf.components.Checkboxes):
         return 0 if flowable.fits_OK else 1000
@@ -36,6 +36,15 @@ def try_wrap(table, width, diverge):
     return 20 * n_wrapped + h + 10 * diverge * diverge
 
 
+def count_columns(sections):
+    c1, c2, c3 = 0, 0, 0
+    for s in sections:
+        if s['location'] == Section.Location.COL1: c1 = 1
+        if s['location'] == Section.Location.COL2: c2 = 1
+        if s['location'] == Section.Location.COL3: c3 = 1
+    return c1 + c2 + c3
+
+
 def create_pdf(definition):
     build_font_choices()
 
@@ -45,13 +54,15 @@ def create_pdf(definition):
     sections = definition['sections']
     pad = definition['layout']['padding']
 
-    main_table, n_columns = build_content(pad, sections, styles)
+    n_columns = max(1, count_columns(sections))
 
+    if n_columns == 1:
+        main_table = build_content(pad, sections, styles, doc.width, [doc.width])
     if n_columns == 2:
-        table_height = try_wrap(main_table, doc.width, 0)
-        for s in [0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8]:
+        table_height = 9e99
+        for s in [0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8]:
             colWidths = [doc.width * s, doc.width * (1 - s)]
-            table, n_columns = build_content(pad, sections, styles, colWidths=colWidths)
+            table = build_content(pad, sections, styles, doc.width, colWidths)
             table_h = try_wrap(table, doc.width, s - 0.5)
             if table_h < table_height:
                 table_height = table_h
@@ -61,7 +72,7 @@ def create_pdf(definition):
     return output.getvalue()
 
 
-def build_content(pad, sections, styles, colWidths=None):
+def build_content(pad, sections, styles, total_width, colWidths):
     top = extract_section(sections, Section.Location.TOP, styles)
     bottom = extract_section(sections, Section.Location.BOTTOM, styles)
     middle = list(filter(None, [
@@ -69,14 +80,17 @@ def build_content(pad, sections, styles, colWidths=None):
         extract_section(sections, Section.Location.COL2, styles),
         extract_section(sections, Section.Location.COL3, styles),
     ]))
-    right_item = middle[-1] if len(middle) > 1 else None
+
+    mid_list = [build_inner_table(item, i == 0 or i < len(middle) - 1, pad, colWidths[i])
+                for i, item in enumerate(middle)]
+
     main_table = build_outer_table(
-            build_inner_table(top, False, pad),
-            [build_inner_table(i, i != right_item, pad) for i in middle],
-            build_inner_table(bottom, False, pad),
+            build_inner_table(top, False, pad, total_width),
+            mid_list,
+            build_inner_table(bottom, False, pad, total_width),
             pad, colWidths
     )
-    return main_table, max(1, len(middle))
+    return main_table
 
 
 def create_txt(definition):
