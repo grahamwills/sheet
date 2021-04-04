@@ -70,14 +70,18 @@ def count_wrapped(flowable):
     if not flowable:
         return 0
     if isinstance(flowable, Paragraph):
-        # We don't care if there are more than two lines
-        return 1 if len(flowable.blPara.lines) > 1 else 0
+        try:
+            # We don't care if there are more than two lines
+            return 1 if len(flowable.blPara.lines) > 1 else 0
+        except:
+            # No apragraphs means wrap failed badly
+            return 1000
     if isinstance(flowable, Table):
         return sum([count_wrapped(cell) for cell in flowable.original_contents])
     if isinstance(flowable, pdf.components.TextField) or isinstance(flowable, Image):
         return 0
     if isinstance(flowable, pdf.components.Checkboxes):
-        return 0 if flowable.fits_OK else 1000
+        return 0 if flowable.fits_OK else 100
     raise Exception("Unexpected flowable content: " + str(flowable.__class__))
 
 

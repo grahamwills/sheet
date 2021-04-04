@@ -7,6 +7,7 @@ from reportlab.lib.colors import toColorOrNone, Color
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Table, TableStyle
 
+from util import try_wrap
 from .components import Checkboxes, ImageAutoSize, TextField, TitledTable
 from layout.models import TextStyle
 
@@ -128,7 +129,7 @@ def build_inner_table(sections, on_left, padding, width):
 
 
 class Part():
-    pair_matcher = re.compile(r'([^=]+)=([^=]+)')
+    pair_matcher = re.compile(r'(.+)->(.+)')
     textfield_matcher = re.compile(r'^\[\s*]$')
 
     def __init__(self, definition, styles):
@@ -157,7 +158,6 @@ class Part():
         if not self.content:
             return Paragraph("", style=self.text_style)
 
-        content_items = [self.make_items(i) for i in self.content.splitlines()]
         style_commands = [
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
             ('LEFTPADDING', (0, 0), (-1, -1), self.line_spacing),
@@ -165,9 +165,31 @@ class Part():
             ('TOPPADDING', (0, 0), (-1, -1), self.line_spacing),
             ('BOTTOMPADDING', (0, 0), (-1, -1), self.line_spacing),
         ]
+        content = self.build_text_content()
 
+        n_columns = len(content[0])
+        if n_columns < 2:
+            return self.place_in_table(content, style_commands, on_left, colWidths=None)
+        else:
+            best = (9e99, None)
+            n_odd = (n_columns + 1) // 2
+            n_even = n_columns // 2
+            max = int(width / n_odd)
+            for odd in range(10, max - 10, 10):
+                even = (width - odd * n_odd) / n_even
+                colWidths = ([odd, even] * n_odd)[0:n_columns]
+                content = self.build_text_content()
+                table = self.place_in_table(content, style_commands, on_left, colWidths=colWidths)
+                h = try_wrap(table, width, 0)
+                if h < best[0]:
+                    best = h, table
+                if n_columns > 5:
+                    print(colWidths, h)
+            return best[1]
+
+    def build_text_content(self):
+        content_items = [self.make_items(i) for i in self.content.splitlines()]
         is_pairs = content_items and len(max(content_items, key=len)) > 1
-
         if is_pairs:
             content = []
             for item in content_items:
@@ -178,10 +200,7 @@ class Part():
                     content += item
         else:
             content = [c[0] for c in content_items]
-
-        content = self.wrap(content, self.columns * (2 if is_pairs else 1))
-
-        return self.place_in_table(content, style_commands, on_left)
+        return self.place_in_columns(content, self.columns * (2 if is_pairs else 1))
 
     def as_image(self, on_left, width):
         style_commands = [
@@ -197,13 +216,13 @@ class Part():
         content = [[ImageAutoSize(self.image, width)]]
         return self.place_in_table(content, style_commands, on_left)
 
-    def place_in_table(self, content, style_commands, on_left):
+    def place_in_table(self, content, style_commands, on_left, colWidths=None):
         if self.border_color:
             return TitledTable(content, style_commands, self.title_style,
                                title=self.title, title_on_left=on_left, box_stroke=self.border_color,
-                               box_fill=self.fill_color)
+                               box_fill=self.fill_color, colWidths=colWidths)
         else:
-            return TitledTable(content, style_commands)
+            return TitledTable(content, style_commands, colWidths=colWidths)
 
     def make_items(self, content):
         if DEBUG:
@@ -236,7 +255,7 @@ class Part():
             txt += style.suffix
         return [Paragraph(txt, style=style)]
 
-    def wrap(self, content, cols):
+    def place_in_columns(self, content, cols):
         result = []
         for i in range(0, len(content), cols):
             result.append(content[i:min(i + cols, len(content))])
