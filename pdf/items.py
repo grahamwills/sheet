@@ -183,8 +183,6 @@ class Part():
                 h = try_wrap(table, width, 0)
                 if h < best[0]:
                     best = h, table
-                if n_columns > 5:
-                    print(colWidths, h)
             return best[1]
 
     def build_text_content(self):

@@ -74,7 +74,7 @@ def count_wrapped(flowable):
             # We don't care if there are more than two lines
             return 1 if len(flowable.blPara.lines) > 1 else 0
         except:
-            # No apragraphs means wrap failed badly
+            # No paragraphs means wrap failed badly
             return 1000
     if isinstance(flowable, Table):
         return sum([count_wrapped(cell) for cell in flowable.original_contents])
@@ -88,4 +88,4 @@ def count_wrapped(flowable):
 def try_wrap(table, width, diverge):
     w, h = table.wrap(width, 10000)
     n_wrapped = count_wrapped(table)
-    return 20 * n_wrapped + h + 10 * diverge * diverge
+    return n_wrapped + h/100 + diverge * diverge / 1000
