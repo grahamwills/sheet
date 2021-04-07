@@ -2,8 +2,7 @@ import io
 import json
 
 from layout.models import Section
-from util import try_wrap
-from .util import build_font_choices
+from .util import build_font_choices, try_wrap
 from .items import Part, build_document, build_inner_table, build_styles, build_outer_table
 
 

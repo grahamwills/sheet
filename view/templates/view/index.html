@@ -12,14 +12,21 @@
     </p>
 
 
-    <p>Enter the name of a layout to view it</p>
+    <H2>View an Existing Sheet</H2>
 
+    <p>
     <form action="{% url 'show' %}" method="get">
         <table class="table_form">
             {{ form.as_table }}
         </table>
-        <input type="submit" value="Go">
+        <input type="submit" name="view" value="View">
     </form>
+    </p>
+
+
+    <H2>Create a new Sheet</H2>
+
+    <a href="{% url 'create' %}">Create a new sheet</a>
 
 
 {% endblock %}

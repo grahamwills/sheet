@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}layout - {{ layout_name }}{% endblock %}
+{% block header1 %}Character Sheet{% endblock %}
+{% block header2 %}{{ layout_name }}{% endblock %}
+
+{% block pagecontent %}
+
+    {%  if error %}
+        <div class="error">
+        <H2>Error</H2>
+        <p>{{ error }}</p>
+        </div>
+    {%  endif %}
+
+    <h2>Page Definition</h2>
+    <form action="" method="POST">
+        <table class="table_form">
+            {% csrf_token %}
+            {{ form.as_table }}
+        </table>
+        <input type="submit" value="Create"/>
+    </form>
+
+
+
+{% endblock %}

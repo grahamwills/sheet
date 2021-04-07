@@ -1,13 +1,12 @@
 import re
 
-from django.db.models import ImageField
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT, TA_RIGHT
 from reportlab.lib.styles import ParagraphStyle, StyleSheet1
 from reportlab.lib.colors import toColorOrNone, Color
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Table, TableStyle
 
-from util import try_wrap
+from .util import try_wrap
 from .components import Checkboxes, ImageAutoSize, TextField, TitledTable
 from layout.models import TextStyle
 

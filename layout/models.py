@@ -7,6 +7,7 @@ from pdf.util import build_font_choices
 # This is the basic unit of 'ownership'; everything else belongs to one
 class Layout(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    system = models.BooleanField(verbose_name="System Owned", default=False)
     unlock_key = models.CharField(max_length=100)
     width = models.FloatField(default=8.5, verbose_name='Page Width')
     height = models.FloatField(default=11, verbose_name='Page Height')

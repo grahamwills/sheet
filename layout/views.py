@@ -1,9 +1,11 @@
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.forms.models import model_to_dict
+from django.urls import reverse
+from django.utils.http import urlencode
 
 from pdf.main import create_pdf
-from .forms import LayoutForm, SectionForm, TextStyleForm
+from .forms import CreateLayoutForm, LayoutForm, SectionForm, StartForm, TextStyleForm
 from .models import Layout, Section, TextStyle
 
 
@@ -25,6 +27,28 @@ def show(request):
         pass
 
     return show_layout(layout, context, request)
+
+
+def create_layout(request):
+    form = CreateLayoutForm(request.POST or None)
+    if not 'layout' in request.POST:
+        return render(request, 'layout/create_layout.html', {'form': form})
+
+    layout_name = request.POST['layout']
+    unlock_key = request.POST['unlock_key']
+
+    try:
+        Layout.objects.get(name=layout_name)
+        msg = "Character Sheet '%s' already exists, please choose another name" % layout_name
+        return render(request, 'layout/create_layout.html', {'error': msg, 'form':form})
+    except Layout.DoesNotExist:
+        layout = Layout(name=layout_name, unlock_key=unlock_key)
+        layout.save()
+        request.session['last_layout'] = layout.name
+        base_url = reverse('show')
+        query_string = urlencode({'layout': layout_name})
+        url = '{}?{}'.format(base_url, query_string)
+        return redirect(url)
 
 
 def show_style(name, layout, context, request):
