@@ -93,3 +93,29 @@ class Section(models.Model):
 
     def __str__(self):
         return "%s \u00A7 %s" % (self.owner.name, self.title)
+
+def add_layout(name, unlock_key, base_name):
+    layout = Layout(name=name, unlock_key=unlock_key)
+    layout.save()
+
+    try:
+        base = Layout.objects.get(name=base_name)
+
+        # Copy styles
+        for s in TextStyle.objects.filter(owner=base):
+            print('before', s)
+            s.owner = layout
+            s.pk = None
+            print('after', s)
+            s.save()
+        # Copy sections
+        for s in Section.objects.filter(owner=base):
+            print('before', s)
+            s.owner = layout
+            s.pk = None
+            print('after', s)
+            s.save()
+    except:
+        pass
+
+

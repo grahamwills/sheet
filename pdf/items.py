@@ -101,6 +101,7 @@ def build_outer_table(top_flow, middle_flow, bottom_flow, padding, colWidths):
 
 
 def make_table(data, style_commands, colWidths):
+    if not data: return None
     table = Table(data, style=TableStyle(style_commands), colWidths=colWidths)
     table.original_contents = [cell for row in data for cell in row]
     return table
@@ -238,6 +239,7 @@ class Part():
             value = self.remove_quote(match.group(2).strip())
             return self.make_paragraphs(key, key_style) + self.make_paragraphs(value, style)
         else:
+            txt = self.remove_quote(txt)
             return self.make_paragraphs(txt, style)
 
     def make_paragraphs(self, txt, style):
@@ -248,6 +250,7 @@ class Part():
 
         if Part.textfield_matcher.match(txt):
             return [TextField(style)]
+        txt = self.replace_ending_spaces(txt)
         if style.suffix:
             txt += style.suffix
         return [Paragraph(txt, style=style)]
@@ -277,3 +280,10 @@ class Part():
             return [Checkboxes(result, style.fontSize * 0.9)]
         else:
             return None
+
+    def replace_ending_spaces(self, txt):
+        t = txt.lstrip()
+        pre = '\u00a0' * (len(txt) - len(t))
+        s = txt.rstrip()
+        post = '\u00a0' * (len(t) - len(s))
+        return pre + t + post

@@ -5,8 +5,8 @@ from django.urls import reverse
 from django.utils.http import urlencode
 
 from pdf.main import create_pdf
-from .forms import CreateLayoutForm, LayoutForm, SectionForm, StartForm, TextStyleForm
-from .models import Layout, Section, TextStyle
+from .forms import CreateLayoutForm, LayoutForm, SectionForm, TextStyleForm
+from .models import Layout, Section, TextStyle, add_layout
 
 
 def show(request):
@@ -30,21 +30,22 @@ def show(request):
 
 
 def create_layout(request):
-    form = CreateLayoutForm(request.POST or None)
+    context = {'form': CreateLayoutForm(request.POST or None)}
     if not 'layout' in request.POST:
-        return render(request, 'layout/create_layout.html', {'form': form})
+        return render(request, 'layout/create_layout.html',context)
 
     layout_name = request.POST['layout']
     unlock_key = request.POST['unlock_key']
+    base_layout = request.POST['base']
 
     try:
         Layout.objects.get(name=layout_name)
         msg = "Character Sheet '%s' already exists, please choose another name" % layout_name
-        return render(request, 'layout/create_layout.html', {'error': msg, 'form':form})
+        context['error'] = msg
+        return render(request, 'layout/create_layout.html', context)
     except Layout.DoesNotExist:
-        layout = Layout(name=layout_name, unlock_key=unlock_key)
-        layout.save()
-        request.session['last_layout'] = layout.name
+        add_layout(layout_name, unlock_key, base_layout)
+        request.session['last_layout'] = layout_name
         base_url = reverse('show')
         query_string = urlencode({'layout': layout_name})
         url = '{}?{}'.format(base_url, query_string)
@@ -114,19 +115,3 @@ def create_layout_context(layout, request):
 
 def to_dict(obj):
     return model_to_dict(obj, exclude=['unlock_key', 'id', 'owner'])
-
-#
-#
-# def show_section(request):
-#     layout_name = request.GET['layout']
-#     layout, context = create_layout_context(layout_name, request)
-#
-#     layout = get_object_or_404(Layout, name=layout_name)
-#     target = get_object_or_404(Section, owner=layout, title=(request.GET['section']))
-#     context['section_name'] = request.GET['section']
-#     context['form'] = SectionForm(instance=target)
-#     return render(request, 'layout/show_section.html', context)
-#
-#
-#
-#
